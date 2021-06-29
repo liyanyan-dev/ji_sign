@@ -9,6 +9,11 @@ import (
 	"github.com/gocolly/colly"
 )
 
+const (
+	sckey  string = "xxxx"
+	serurl string = "https://sc.ftqq.com/" + sckey + ".send?text="
+)
+
 func init() {
 	//获取执行文件路径
 	util.GetExecutePath()
@@ -49,6 +54,7 @@ func sign() {
 		log.Fatal(err)
 		util.Log(err.Error())
 	}
+	c.Visit(serurl + "ji sign done.")
 }
 
 func zhToUnicode(raw []byte) ([]byte, error) {

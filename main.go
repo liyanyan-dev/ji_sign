@@ -32,7 +32,7 @@ func main() {
 func sign() {
 	// create a new collector
 	c := colly.NewCollector(
-		colly.AllowedDomains("j02.space"),
+		colly.AllowedDomains("j02.space", "sc.ftqq.com"),
 	)
 
 	// authenticate
@@ -44,7 +44,7 @@ func sign() {
 
 	c.OnResponse(func(r *colly.Response) {
 		v, _ := zhToUnicode(r.Body)
-		util.Log("response revice :" + string(v))
+		util.Log("response revice :" + v)
 
 	})
 	c.Visit("https://j02.space/xiaoma/get_user")
@@ -54,13 +54,13 @@ func sign() {
 		log.Fatal(err)
 		util.Log(err.Error())
 	}
-	c.Visit(serurl + "ji sign done.")
+	c.Visit(serurl + "几鸡签到成功!")
 }
 
-func zhToUnicode(raw []byte) ([]byte, error) {
+func zhToUnicode(raw []byte) (string, error) {
 	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(raw)), `\\u`, `\u`, -1))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return []byte(str), nil
+	return str, nil
 }

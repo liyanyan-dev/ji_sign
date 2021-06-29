@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gocolly/colly"
-	"github.com/robfig/cron"
 	"ji_sign/util"
 	"log"
-	"time"
+	"strconv"
+	"strings"
+
+	"github.com/gocolly/colly"
 )
 
-func init()  {
+func init() {
 	//获取执行文件路径
 	util.GetExecutePath()
 	//加载配置文件
@@ -19,43 +19,42 @@ func init()  {
 }
 
 func main() {
-	c := cron.New()
-	c.AddFunc("0 * * * * ?", func() {
-		timeNow:=time.Now()
-		timeNowStr:=timeNow.Format("2006-01-02 15:04:05")
-		fmt.Print(timeNowStr +": test cron ,every hour \n")
-	})
-	c.AddFunc("0 0 9 * * ?", func() {
-		fmt.Print("每天9:00签到")
-		sign()
-	})
-	c.Start()
-	select {}
+	// linux下部署直接使用自带的crontab
+	sign()
 }
+
 //登录并签到
-func sign()  {
+func sign() {
 	// create a new collector
 	c := colly.NewCollector(
-		colly.AllowedDomains("ji-bt.pw"),
+		colly.AllowedDomains("j02.space"),
 	)
 
 	// authenticate
-	err := c.Post("https://ji-bt.pw/signin", map[string]string{"email": util.AppConfig.GetString("email"), "passwd": util.AppConfig.GetString("passwd")})
+	err := c.Post("https://j02.space/signin", map[string]string{"email": util.AppConfig.GetString("email"), "passwd": util.AppConfig.GetString("passwd")})
 	if err != nil {
 		log.Fatal(err)
 		util.Log(err.Error())
 	}
 
 	c.OnResponse(func(r *colly.Response) {
-		log.Println("response revice", string(r.Body))
-		util.Log("response revice :"+string(r.Body))
+		v, _ := zhToUnicode(r.Body)
+		util.Log("response revice :" + string(v))
 
 	})
-	c.Visit("https://ji-bt.pw/xiaoma/get_user")
+	c.Visit("https://j02.space/xiaoma/get_user")
 	//签到
-	err = c.Post("https://ji-bt.pw/user/checkin", map[string]string{})
+	err = c.Post("https://j02.space/user/checkin", map[string]string{})
 	if err != nil {
 		log.Fatal(err)
 		util.Log(err.Error())
 	}
+}
+
+func zhToUnicode(raw []byte) ([]byte, error) {
+	str, err := strconv.Unquote(strings.Replace(strconv.Quote(string(raw)), `\\u`, `\u`, -1))
+	if err != nil {
+		return nil, err
+	}
+	return []byte(str), nil
 }

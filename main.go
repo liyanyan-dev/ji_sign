@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	sckey  string = "xxxx"
+	sckey  string = "xxxxx"
 	serurl string = "https://sc.ftqq.com/" + sckey + ".send?text="
 )
 
@@ -30,6 +30,7 @@ func main() {
 
 //登录并签到
 func sign() {
+	var sendMsg string = ""
 	// create a new collector
 	c := colly.NewCollector(
 		colly.AllowedDomains("j02.space", "sc.ftqq.com"),
@@ -44,6 +45,9 @@ func sign() {
 
 	c.OnResponse(func(r *colly.Response) {
 		v, _ := zhToUnicode(r.Body)
+		if strings.Contains(v, "签到") {
+			sendMsg = v
+		}
 		util.Log("response revice :" + v)
 
 	})
@@ -54,7 +58,10 @@ func sign() {
 		log.Fatal(err)
 		util.Log(err.Error())
 	}
-	c.Visit(serurl + "几鸡签到成功!")
+	if len(sendMsg) == 0 {
+		sendMsg = "几鸡签到成功!"
+	}
+	c.Visit(serurl + sendMsg)
 }
 
 func zhToUnicode(raw []byte) (string, error) {
